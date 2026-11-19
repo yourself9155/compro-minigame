@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
-    <title>วิทยาลัยคอมโปรแกรม - รับสมัครนักศึกษา</title>
+    <title>วิทยาลัยอาชีวศึกษาสุพรรณบุรี - รับสมัครนักศึกษา</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&display=swap"
       rel="stylesheet"
@@ -38,6 +38,8 @@
         text-align: center;
       }
       #app {
+        position: relative;
+        z-index: 1;
         max-width: 980px;
         height: calc(100vh - 30px);
         height: calc(100dvh - 30px);
@@ -70,6 +72,8 @@
         color: var(--ac);
       }
       .mq {
+        position: relative;
+        z-index: 2;
         background: #ffd400;
         color: #000;
         overflow: hidden;
@@ -593,12 +597,31 @@
           transform: translateY(-115vh) rotate(90deg);
         }
       }
-      .rc {
+      #cat-rain-layer {
         position: fixed;
-        top: -100px;
+        z-index: 0;
+        inset: 0;
+        overflow: hidden;
         pointer-events: none;
-        z-index: 45;
-        animation: cf 4s linear forwards;
+      }
+      .rc {
+        position: absolute;
+        top: -100px;
+        opacity: var(--opacity, 0.16);
+        filter: drop-shadow(0 3px 8px #0008);
+        will-change: transform;
+        animation: cat-fall var(--duration, 12s) linear forwards;
+      }
+      @keyframes cat-fall {
+        to {
+          transform: translate3d(var(--drift, 0px), calc(100vh + 200px), 0)
+            rotate(350deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #cat-rain-layer {
+          display: none;
+        }
       }
       .stage {
         position: relative;
@@ -841,6 +864,7 @@
         ไม่รักประเทศ 🤡 มีบั๊กฟรีทุกคน 🐛 กาแฟไม่อั้น (เหลือแต่เมล็ด) ☕
       </div>
     </div>
+    <div id="cat-rain-layer" aria-hidden="true"></div>
     <div id="nav"></div>
     <div id="app"></div>
     <script>
@@ -1048,7 +1072,7 @@
         cur = "home";
         navUpdate();
         A.classList.remove("shake");
-        A.innerHTML = `<img class="m" src="${IMG.cat}" style="max-height:12vh"><h1>🎓 วิทยาลัย<span>คอมโปรแกรม</span></h1><p>เปิดรับสมัครนักศึกษาใหม่ — ทุกสาขา (แต่เราแนะนำคอมโปรแกรม 😏)</p><div class="cards">${MJ.map((m, i) => (i ? `<div class="card" onclick="other('${m[1]}')"><em>${m[0]}</em>${m[1]}<br><small>(เต็มแล้ว?)</small></div>` : `<div class="card hot" onclick="form()"><em>${m[0]}</em>${m[1]} 🔥 แนะนำ!!<br><small>สมัครแล้วแถมส้มตำ 1 จาน! <img src="${IMG.som}" style="height:5vh;vertical-align:middle"></small></div>`)).join("")}</div>`;
+        A.innerHTML = `<img class="m" src="${IMG.cat}" style="max-height:12vh"><h1>🎓 วิทยาลัย<span>อาชีวศึกษาสุพรรณบุรี</span></h1><p>เปิดรับสมัครนักศึกษาใหม่ — ทุกสาขา (แต่เราแนะนำคอมโปรแกรม 😏)</p><div class="cards">${MJ.map((m, i) => (i ? `<div class="card" onclick="other('${m[1]}')"><em>${m[0]}</em>${m[1]}<br><small>(เต็มแล้ว?)</small></div>` : `<div class="card hot" onclick="form()"><em>${m[0]}</em>${m[1]} 🔥 แนะนำ!!<br><small>สมัครแล้วแถมส้มตำ 1 จาน! <img src="${IMG.som}" style="height:5vh;vertical-align:middle"></small></div>`)).join("")}</div>`;
       }
 
       /* สาขาอื่น = ป่วน */
@@ -1930,18 +1954,24 @@
         document.body.appendChild(d);
       }
       function catRain() {
-        const n = 10 + R(10);
-        for (let i = 0; i < n; i++) {
-          const c = document.createElement("img");
-          c.src = IMG.cat;
-          c.className = "rc";
-          c.style.cssText = `left:${R(96)}%;width:${36 + R(50)}px;animation-duration:${3 + Math.random() * 3}s;animation-delay:${Math.random() * 1.5}s`;
-          document.body.appendChild(c);
-          setTimeout(() => c.remove(), 7500);
-        }
+        const layer = $("#cat-rain-layer");
+        if (!layer || matchMedia("(prefers-reduced-motion: reduce)").matches)
+          return;
+        const c = document.createElement("img");
+        const duration = 10 + Math.random() * 7;
+        const elapsed = Math.random() * duration;
+        const width = 34 + R(32);
+        c.src = IMG.cat;
+        c.className = "rc";
+        c.alt = "";
+        c.style.cssText = `left:${R(Math.max(1, innerWidth - width))}px;width:${width}px;--duration:${duration}s;--drift:${R(181) - 90}px;--opacity:${0.1 + Math.random() * 0.1};animation-delay:-${elapsed}s`;
+        layer.appendChild(c);
+        setTimeout(() => c.remove(), (duration - elapsed) * 1000 + 300);
       }
-      setTimeout(catRain, 2500);
-      setInterval(catRain, 9000);
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        for (let i = 0; i < 16; i++) catRain();
+        setInterval(catRain, 900);
+      }
       home();
     </script>
   </body>
